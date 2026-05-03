@@ -90,17 +90,20 @@ def index():
     result = None
     image_filename = None
     error = None
+    vip_success = False
 
     if request.method == "POST":
         
         vip_code = request.form.get("vip_code", "")
 
-        if vip_code != VIP_PASSWORD:
-            ip = request.remote_addr
+        if vip_code == VIP_PASSWORD:
+    　　　　 vip_success = True
+　　　　 else:
+    　　　　 ip = request.remote_addr
 
-        if not can_use(ip):
-            error = "今日は無料回数を使い切りました。合言葉がある人は入力してね♡"
-            return render_template("index.html", result=None, image=None, error=error)
+    　　　　 if not can_use(ip):
+       　　　   error = "今日は無料回数を使い切りました。合言葉がある人は入力してね♡"
+        　　　  return render_template("index.html", result=None, image=None, error=error, vip_success=vip_success)
         user_text = request.form["text"]
 
         if user_text == "エラーテスト":
@@ -137,7 +140,6 @@ def index():
                 if os.path.exists(image_path):
                    os.remove(image_path)
 
-    return render_template("index.html", result=result, image=None, error=error)
-
+    return render_template("index.html", result=result, image=image_filename, error=error, vip_success=vip_success)
 if __name__ == "__main__":
     app.run(debug=True)
