@@ -185,6 +185,11 @@ footer, .footer {
             }
             </script>
         </form>
+        {% if vip_success %}
+            <p style="color:#86efac; font-weight:bold;">
+        💎 VIP認証成功！無制限で使えます✨
+             </p>
+        {% endif %}
 
         {% if error %}
         <div class="error">
