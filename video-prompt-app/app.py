@@ -7,6 +7,19 @@ import base64
 import mimetypes
 from datetime import datetime
 
+load_dotenv()
+
+VIP_PASSWORD = os.getenv("VIP_PASSWORD")
+client = OpenAI()
+
+app = Flask(__name__)
+
+UPLOAD_FOLDER = "static"
+app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+ALLOWED_EXTENSIONS = {"jpg", "jpeg", "png", "webp", "gif"}
+
 usage = {}
 
 def can_use(ip):
@@ -23,17 +36,6 @@ def can_use(ip):
 
     usage[ip]["count"] += 1
     return True
-
-load_dotenv()
-VIP_PASSWORD = os.getenv("VIP_PASSWORD")
-client = OpenAI()
-
-app = Flask(__name__)
-UPLOAD_FOLDER = "static"
-app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-
-ALLOWED_EXTENSIONS = {"jpg", "jpeg", "png", "webp", "gif"}
 
 def allowed_file(filename):
     return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
@@ -58,20 +60,19 @@ def make_video_prompt(user_text, image_path):
                     {
                         "type": "input_text",
                         "text": f"""
-You are an expert prompt writer for video generation AI such as Kling or Pika.
+You are an expert prompt writer for Google Vids.
 
-Look at the uploaded image and create a high-quality English prompt for image-to-video generation.
+Look at the uploaded image and create a simple Japanese prompt for making a beginner-friendly video.
 
 User request:
 {user_text}
 
 Requirements:
-- 5-second video
-- natural next motion from the image
-- cinematic and realistic
-- simple human movement
-- avoid distorted faces, bad hands, extra fingers
-- output ONLY the English prompt
+- easy to understand
+- suitable for Google Vids
+- simple motion
+- warm and natural atmosphere
+- output ONLY the prompt
 """
                     },
                     {
@@ -93,7 +94,6 @@ def index():
     vip_success = False
 
     if request.method == "POST":
-        
         vip_code = request.form.get("vip_code", "")
 
         if vip_code == VIP_PASSWORD:
@@ -103,13 +103,26 @@ def index():
 
             if not can_use(ip):
                 error = "今日は無料回数を使い切りました。合言葉がある人は入力してね♡"
-                return render_template("index.html", result=None, image=None, error=error, vip_success=vip_success)
+                return render_template(
+                    "index.html",
+                    result=None,
+                    image=None,
+                    error=error,
+                    vip_success=vip_success
+                )
+
         user_text = request.form["text"]
 
         if user_text == "エラーテスト":
             error = "ごめんね♡ 今、全世界のみんながAIを使いすぎて混み合っています。少し時間をおいて、もう一度試してみてください。"
-            return render_template("index.html", result=None, image=None, vip_success=vip_success)
-        user_text = request.form["text"]
+            return render_template(
+                "index.html",
+                result=None,
+                image=None,
+                error=error,
+                vip_success=vip_success
+            )
+
         file = request.files["image"]
 
         if not file or file.filename == "":
@@ -123,10 +136,7 @@ def index():
             image_filename = filename
 
             try:
-              
-
                 result = make_video_prompt(user_text, image_path)
-
             except Exception as e:
                 error_message = str(e)
 
@@ -138,8 +148,15 @@ def index():
                     error = "ごめんね♡ うまく生成できませんでした。少し時間をおいてもう一度試してみてください。"
             finally:
                 if os.path.exists(image_path):
-                   os.remove(image_path)
+                    os.remove(image_path)
 
-    return render_template("index.html", result=result, image=image_filename, error=error, vip_success=vip_success)
+    return render_template(
+        "index.html",
+        result=result,
+        image=None,
+        error=error,
+        vip_success=vip_success
+    )
+
 if __name__ == "__main__":
     app.run(debug=True)
