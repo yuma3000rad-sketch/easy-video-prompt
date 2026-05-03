@@ -101,14 +101,14 @@ def index():
         else:
             ip = request.remote_addr
 
-    　　　　 if not can_use(ip):
+            if not can_use(ip):
                 error = "今日は無料回数を使い切りました。合言葉がある人は入力してね♡"
                 return render_template("index.html", result=None, image=None, error=error, vip_success=vip_success)
         user_text = request.form["text"]
 
         if user_text == "エラーテスト":
             error = "ごめんね♡ 今、全世界のみんながAIを使いすぎて混み合っています。少し時間をおいて、もう一度試してみてください。"
-            return render_template("index.html", result=None, image=None, error=error)
+            return render_template("index.html", result=None, image=None, vip_success=vip_success)
         user_text = request.form["text"]
         file = request.files["image"]
 
